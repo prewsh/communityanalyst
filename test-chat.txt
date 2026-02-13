@@ -1,0 +1,13 @@
+[12/02/2026, 09:00:15] Alice: Hey everyone! Welcome to the new Community Analysis group. 👋
+[12/02/2026, 09:05:22] Bob: Thanks for adding me, Alice! Excited to see how this tool works.
+[12/02/2026, 09:10:45] Charlie: Same here! I've been looking for something to summarize our weekly AMA sessions. They get so long and it's hard to track the key questions.
+[12/02/2026, 09:12:30] Alice: Exactly! That's one of the main use cases. We want to be able to extract the top topics and FAQs automatically.
+[12/02/2026, 09:15:00] David: Will it support both Telegram and WhatsApp exports?
+[12/02/2026, 09:16:10] Alice: Yes, David. The parser handles both formats. It strips out the timestamps and system messages so the AI can focus on the content.
+[12/02/2026, 09:20:05] Eve: What about privacy? Are we sending user data to the AI?
+[12/02/2026, 09:22:15] Alice: Good question, Eve. The parser also removes usernames, so the analysis is anonymous. We only send the message content to Gemini.
+[12/02/2026, 09:25:30] Bob: That's great. Is there a limit on the file size?
+[12/02/2026, 09:26:45] Alice: Currently, we're chunking the text into 8,000 characters to stay within the token limits, but the app handles large files by processing them in parts and then combining the summaries.
+[12/02/2026, 09:30:00] Charlie: Awesome. Can it generate a post for LinkedIn too? I always struggle with writing those recap posts.
+[12/02/2026, 09:31:10] Alice: success! It will generate a draft engagement post and a list of follow-up actions for us.
+[12/02/2026, 09:35:00] David: I'm ready to test it out. Uploading a file now!
