@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Copy, Check, MessageSquare, TrendingUp, HelpCircle, FileText, Download, Users } from 'lucide-react';
+import { Copy, Check, MessageSquare, TrendingUp, HelpCircle, FileText, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

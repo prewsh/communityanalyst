@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { UploadCloud, File, X, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TimeRange } from '@/lib/processors';
 import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 

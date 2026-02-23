@@ -1,16 +1,4 @@
 import jsPDF from 'jspdf';
-// Define interface locally to avoid complex imports
-interface AnalysisResult {
-    summary?: string;
-    healthScore?: number;
-    sentiment?: { positive: number; neutral: number; negative: number };
-    unansweredQuestions?: string[];
-    topics?: string[];
-    faqs?: { question: string; answer: string }[];
-    engagementPost?: string;
-    followUp?: string[];
-    volumeData?: { name: string; messages: number }[];
-}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function generateAnalysisPDF(data: any) {
@@ -82,7 +70,7 @@ export function generateAnalysisPDF(data: any) {
 
         doc.setFontSize(11);
         doc.setTextColor(60);
-        data.unansweredQuestions.forEach((q: string, i: number) => {
+        data.unansweredQuestions.forEach((q: string) => {
             const lines = doc.splitTextToSize(`• ${q}`, contentWidth);
             doc.text(lines, margin, y);
             y += (lines.length * 7);

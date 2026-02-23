@@ -1,4 +1,4 @@
-import { startOfDay, subDays, isAfter, parse, format, startOfHour } from 'date-fns';
+import { subDays, isAfter, format, startOfHour } from 'date-fns';
 
 export type TimeRange = '24h' | '7d' | 'all';
 
@@ -103,7 +103,6 @@ export function calculateMessageVolume(content: string, range: TimeRange) {
     // Determine grouping format
     // 24h -> Group by Hour (HH:00)
     // 7d / All -> Group by Day (DD/MM)
-    const isHourly = range === '24h';
 
     for (const line of lines) {
         const date = extractMessageDate(line);
