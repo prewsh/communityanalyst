@@ -1,19 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Copy, Check, MessageSquare, TrendingUp, HelpCircle, FileText, Download } from 'lucide-react';
+import { Copy, Check, MessageSquare, TrendingUp, HelpCircle, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { AuthModal } from '@/components/AuthModal';
 import { Accordion } from '@/components/ui/accordion';
 import { HealthScoreCard, SentimentBar, UnansweredQuestionsList, VolumeGraph, MemberGeographyCard } from '@/components/DashboardComponents';
 import { TopContributors } from '@/components/TopContributors';
-import { supabase } from '@/lib/supabase';
-import { saveReport } from '@/lib/db';
-import { generateAnalysisPDF } from '@/lib/pdf-generator';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 // Define types for the analysis result based on the API response structure
 interface AnalysisResult {
@@ -32,41 +25,11 @@ interface AnalysisResult {
 
 export function AnalysisResults({ data, isLoading = false }: { data: AnalysisResult, isLoading?: boolean }) {
     const [copied, setCopied] = useState(false);
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
 
     const copyToClipboard = () => {
         navigator.clipboard.writeText(data.engagementPost);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-    };
-
-    const handleSaveReport = async () => {
-        setIsSaving(true);
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (!user) {
-                setIsAuthModalOpen(true);
-                setIsSaving(false);
-                return;
-            }
-
-            // User is logged in, save to DB
-            await saveReport(user.id, data);
-
-            // Generate PDF
-            generateAnalysisPDF(data);
-
-            toast.success('Report saved to Supabase and PDF downloaded');
-
-        } catch (error: unknown) {
-            console.error(error);
-            const msg = error instanceof Error ? error.message : 'Failed to save report';
-            toast.error('Failed to save report', { description: msg });
-        } finally {
-            setIsSaving(false);
-        }
     };
 
     const container = {
@@ -86,14 +49,6 @@ export function AnalysisResults({ data, isLoading = false }: { data: AnalysisRes
 
     return (
         <>
-            <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={() => setIsAuthModalOpen(false)}
-                onSuccess={() => {
-                    setIsAuthModalOpen(false);
-                    handleSaveReport(); // Retry save after auth
-                }}
-            />
             <motion.div
                 className={`space-y-6 w-full max-w-6xl mx-auto mt-12 transition-opacity duration-300 ${isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}
                 variants={container}
@@ -102,10 +57,6 @@ export function AnalysisResults({ data, isLoading = false }: { data: AnalysisRes
             >
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-3xl font-heading font-bold text-foreground">Community Dashboard</h2>
-                    <Button onClick={handleSaveReport} className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                        Save Report
-                    </Button>
                 </div>
 
                 {/* Dashboard Metrics Grid */}
