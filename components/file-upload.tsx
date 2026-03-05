@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { UploadCloud, File, X, Loader2, AlertCircle } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { CloudUploadIcon, File02Icon, Cancel01Icon, Tick01Icon, Upload01Icon } from 'hugeicons-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { Card, CardContent } from '@/components/ui/card';
 
 interface FileUploadProps {
     onFileSelect: (file: File) => void;
@@ -67,92 +66,108 @@ export function FileUpload({ onFileSelect, isAnalyzing }: FileUploadProps) {
     };
 
     return (
-        <Card className="w-full max-w-2xl mx-auto border-dashed border-2 bg-muted/30">
-            <CardContent className="p-8">
-                <div
-                    className={cn(
-                        "flex flex-col items-center justify-center p-10 transition-colors border-2 border-dashed rounded-xl cursor-pointer",
-                        isDragging ? "border-primary bg-primary/10" : "border-border hover:bg-muted/50",
-                        error ? "border-red-200 bg-red-50" : ""
-                    )}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => document.getElementById('fileInput')?.click()}
-                >
-                    <input
-                        id="fileInput"
-                        type="file"
-                        className="hidden"
-                        accept=".txt,.json,.html"
-                        onChange={handleFileInput}
-                    />
-
-                    {file ? (
-                        <div className="flex items-center gap-4 p-4 bg-card rounded-lg shadow-sm border border-border w-full max-w-md">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                                <File className="w-6 h-6 text-primary" />
+        <div className="w-full">
+            <div
+                className={cn(
+                    "relative group transition-all duration-500",
+                    file ? "bg-white rounded-[2.5rem] p-8 premium-shadow" : ""
+                )}
+            >
+                {file ? (
+                    <div className="space-y-8 animate-in zoom-in-95 duration-500">
+                        {/* Status Header */}
+                        <div className="flex items-center justify-center gap-3 py-3 px-6 bg-green-50 rounded-full w-fit mx-auto border border-green-100 shadow-sm">
+                            <Tick01Icon className="w-4 h-4 text-green-600" />
+                            <span className="text-sm font-bold text-green-600 tracking-tight">file uploaded</span>
+                            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-sm">
+                                <Upload01Icon className="w-3 h-3 text-foreground" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">
-                                    {file.name}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    {(file.size / 1024).toFixed(2)} KB
-                                </p>
-                            </div>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeFile();
-                                }}
-                                className="p-1 hover:bg-muted rounded-full text-muted-foreground hover:text-red-500 transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
                         </div>
-                    ) : (
-                        <>
-                            <div className="p-4 bg-card rounded-full shadow-sm mb-4">
-                                <UploadCloud className="w-8 h-8 text-primary" />
-                            </div>
-                            <p className="text-lg font-heading text-foreground mb-1">
-                                Drag & drop your chat export here
-                            </p>
-                            <p className="text-sm text-muted-foreground mb-6">
-                                Supports .txt (WhatsApp) and .html (Telegram)
-                            </p>
-                            <button className="px-4 py-2 text-sm font-medium text-primary bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors">
-                                Select File
-                            </button>
-                        </>
-                    )}
-                </div>
 
-                {error && (
-                    <div className="mt-4 flex items-center gap-2 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
-                        <AlertCircle className="w-4 h-4" />
-                        {error}
+                        <div className="space-y-2">
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest ml-1">Your file</p>
+                            <div className="flex items-center gap-4 p-6 bg-[#F8F7F4] rounded-2xl border border-border/50 w-full hover:border-primary/20 transition-colors">
+                                <div className="p-2.5 bg-white rounded-xl shadow-sm">
+                                    <File02Icon className="w-6 h-6 text-foreground" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-base font-bold text-foreground truncate">
+                                        {file.name}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeFile();
+                                    }}
+                                    className="p-2 hover:bg-white rounded-full text-muted-foreground hover:text-destructive transition-all"
+                                >
+                                    <Cancel01Icon className="w-6 h-6" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6 pt-2">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={removeFile}
+                                    className="flex-1 py-4 px-6 rounded-2xl font-bold text-foreground border border-border hover:bg-muted/10 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleStartAnalysis}
+                                    disabled={isAnalyzing}
+                                    className="flex-[2] py-4 px-6 rounded-2xl font-bold bg-black text-white hover:bg-black/90 transition-all disabled:opacity-50 shadow-xl shadow-black/10"
+                                >
+                                    {isAnalyzing ? "Analyzing..." : "Start Analyzing"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div
+                        className={cn(
+                            "flex flex-col items-center justify-center p-16 transition-all duration-500 border-2 border-dashed rounded-[3rem] cursor-pointer bg-white/40",
+                            isDragging ? "border-primary bg-primary/5 scale-[0.98]" : "border-border/60 hover:border-primary/40 hover:bg-white",
+                            error ? "border-destructive/20 bg-destructive/5" : ""
+                        )}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => document.getElementById('fileInput')?.click()}
+                    >
+                        <input
+                            id="fileInput"
+                            type="file"
+                            className="hidden"
+                            accept=".txt,.json,.html"
+                            onChange={handleFileInput}
+                        />
+
+                        <div className="p-5 bg-white rounded-3xl shadow-xl shadow-primary/5 mb-8 group-hover:scale-110 transition-transform duration-500">
+                            <CloudUploadIcon className="w-10 h-10 text-primary" />
+                        </div>
+
+                        <h3 className="text-xl font-heading font-extrabold text-foreground mb-2">
+                            Drag & drop your chat export here
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-8">
+                            Supports .txt (WhatsApp) and .html (Telegram)
+                        </p>
+
+                        <button className="px-8 py-3 text-sm font-bold text-foreground bg-white border border-border rounded-2xl shadow-sm hover:shadow-md transition-all">
+                            Select File
+                        </button>
                     </div>
                 )}
 
-                {file && !error && (
-                    <button
-                        onClick={handleStartAnalysis}
-                        disabled={isAnalyzing}
-                        className="w-full mt-6 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2.5 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isAnalyzing ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Analyzing...
-                            </>
-                        ) : (
-                            'Start Analysis'
-                        )}
-                    </button>
+                {error && (
+                    <div className="mt-6 flex items-center gap-2 text-sm font-medium text-destructive bg-destructive/5 p-4 rounded-2xl border border-destructive/10 animate-in fade-in slide-in-from-top-2">
+                        {error}
+                    </div>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

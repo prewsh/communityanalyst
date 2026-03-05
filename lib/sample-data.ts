@@ -18,6 +18,13 @@ export const SAMPLE_ANALYSIS_RESULT = {
         "What is the best way to handle file uploads in Server Actions?",
         "Is there a discount code for the annual plan?"
     ],
+    detectedUnansweredQuestions: [
+        "Has anyone tried the new React Compiler?",
+        "What is the best way to handle file uploads in Server Actions?",
+        "Is there a discount code for the annual plan?",
+        "Can someone share the meeting notes from last week?",
+        "What time does the call start on Friday?"
+    ],
     faqs: [
         {
             question: "How do I reset my password?",
@@ -50,5 +57,12 @@ export const SAMPLE_ANALYSIS_RESULT = {
         { name: "NextJS_Fan", count: 28 },
         { name: "Rohan", count: 19 },
         { name: "NewbieCoder", count: 12 }
+    ],
+    memberGeography: [
+        { country: "Nigeria", count: 120 },
+        { country: "USA/Canada", count: 85 },
+        { country: "UK", count: 45 },
+        { country: "India", count: 30 },
+        { country: "Germany", count: 12 }
     ]
 };

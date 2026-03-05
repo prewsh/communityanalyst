@@ -1,34 +1,55 @@
 'use client';
 
+import React, { useState } from 'react';
+import {
+    HealthScoreCard,
+    SentimentBar,
+    TrendingTopicsList,
+    VolumeGraph,
+    ExecutiveSummaryCard,
+    UnansweredQuestionsCard,
+    MemberGeographyCard,
+    ActiveUsersCard
+} from './DashboardComponents';
 import { motion } from 'framer-motion';
-import { Copy, Check, MessageSquare, TrendingUp, HelpCircle, FileText } from 'lucide-react';
-import { useState } from 'react';
+import {
+    Message01Icon,
+    Copy01Icon,
+    Tick01Icon,
+    ChartBarLineIcon,
+} from 'hugeicons-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion } from '@/components/ui/accordion';
-import { HealthScoreCard, SentimentBar, UnansweredQuestionsList, VolumeGraph, MemberGeographyCard } from '@/components/DashboardComponents';
-import { TopContributors } from '@/components/TopContributors';
+import { toast } from 'sonner';
 
-// Define types for the analysis result based on the API response structure
-interface AnalysisResult {
+export interface AnalysisResult {
     summary: string;
-    healthScore?: number;
-    sentiment?: { positive: number; neutral: number; negative: number };
-    unansweredQuestions?: string[];
+    healthScore: number;
+    sentiment: { positive: number, neutral: number, negative: number };
     topics: string[];
-    faqs: { question: string; answer: string }[];
+    // AI-detected (kept for compat)
+    unansweredQuestions: string[];
+    // Programmatically detected from actual chat structure
+    detectedUnansweredQuestions: string[];
+    faqs: { question: string, answer: string }[];
     engagementPost: string;
     followUp: string[];
-    volumeData?: { name: string; messages: number }[];
-    topContributors?: { name: string; count: number }[];
-    memberGeography?: { country: string; count: number }[];
+    volumeData: { name: string, messages: number }[];
+    topContributors: { name: string, count: number }[];
+    memberGeography: { country: string, count: number }[];
 }
 
-export function AnalysisResults({ data, isLoading = false }: { data: AnalysisResult, isLoading?: boolean }) {
+interface ResultsDisplayProps {
+    results: AnalysisResult;
+}
+
+export function ResultsDisplay({ results }: ResultsDisplayProps) {
     const [copied, setCopied] = useState(false);
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(data.engagementPost);
+        navigator.clipboard.writeText(results.engagementPost);
         setCopied(true);
+        toast.success('Engagement post copied to clipboard!');
         setTimeout(() => setCopied(false), 2000);
     };
 
@@ -36,174 +57,162 @@ export function AnalysisResults({ data, isLoading = false }: { data: AnalysisRes
         hidden: { opacity: 0 },
         show: {
             opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
+            transition: { staggerChildren: 0.08 }
         }
     };
 
     const item = {
-        hidden: { y: 20, opacity: 0 },
-        show: { y: 0, opacity: 1 }
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0 }
     };
 
+    // Map AI topics to the format expected by TrendingTopicsList
+    // Using index-weighted counts for visual differentiation since AI returns strings only
+    const topicData = results.topics.map((topic, i) => ({
+        name: topic,
+        count: Math.max(10 - i * 1.5, 2) | 0
+    }));
+
+    // Prefer programmatic detection; fall back to AI-detected if empty
+    const unansweredToShow = (results.detectedUnansweredQuestions?.length ?? 0) > 0
+        ? results.detectedUnansweredQuestions
+        : (results.unansweredQuestions ?? []);
+
     return (
-        <>
-            <motion.div
-                className={`space-y-6 w-full max-w-6xl mx-auto mt-12 transition-opacity duration-300 ${isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}
-                variants={container}
-                initial="hidden"
-                animate="show"
-            >
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-3xl font-heading font-bold text-foreground">Community Dashboard</h2>
-                </div>
-
-                {/* Dashboard Metrics Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <motion.div variants={item}>
-                        <HealthScoreCard score={data.healthScore || 0} />
-                    </motion.div>
-                    <motion.div variants={item}>
-                        <SentimentBar sentiment={data.sentiment || { positive: 0, neutral: 100, negative: 0 }} />
-                    </motion.div>
-                    <motion.div variants={item} className="md:row-span-2">
-                        <UnansweredQuestionsList questions={data.unansweredQuestions || []} />
-                    </motion.div>
-                    <motion.div variants={item} className="md:col-span-2">
-                        {data.volumeData ? <VolumeGraph data={data.volumeData} /> :
-                            <Card>
-                                <CardContent className="py-10 text-center text-gray-500">No volume data available</CardContent>
-                            </Card>}
-                    </motion.div>
-                </div>
-
-                <h3 className="text-2xl font-heading font-bold text-foreground mt-12 mb-6">Analysis Details</h3>
-
-                {/* Executive Summary */}
-                <motion.div variants={item}>
-                    <Card className="border-l-4 border-l-primary">
-                        <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
-                            <div className="p-2 bg-primary/10 rounded-lg">
-                                <FileText className="w-6 h-6 text-primary" />
-                            </div>
-                            <CardTitle className="font-heading text-xl">Executive Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground leading-relaxed text-lg">
-                                {data.summary}
-                            </p>
-                        </CardContent>
-                    </Card>
-                </motion.div>
-
-
-
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    {/* Top Contributors */}
-                    <motion.div variants={item}>
-                        <TopContributors contributors={data.topContributors} />
-                    </motion.div>
-
-                    {/* Member Geography */}
-                    <motion.div variants={item}>
-                        <MemberGeographyCard data={data.memberGeography} />
-                    </motion.div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* Top Topics */}
-                    <motion.div variants={item}>
-                        <Card className="h-full">
-                            <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
-                                <div className="p-2 bg-secondary/20 rounded-lg">
-                                    <TrendingUp className="w-6 h-6 text-secondary" />
-                                </div>
-                                <CardTitle className="font-heading">Top Topics</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <ul className="space-y-3">
-                                    {data.topics.map((topic, i) => (
-                                        <li key={i} className="flex items-start gap-3">
-                                            <span className="flex-shrink-0 w-6 h-6 bg-secondary/10 text-secondary rounded-full flex items-center justify-center text-sm font-medium border border-secondary/20">
-                                                {i + 1}
-                                            </span>
-                                            <span className="text-foreground font-medium">{topic}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-
-                    {/* Engagement Post */}
-                    <motion.div variants={item}>
-                        <Card className="h-full bg-gradient-to-br from-muted/30 to-background border-border">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-primary/10 rounded-lg">
-                                        <MessageSquare className="w-6 h-6 text-primary" />
-                                    </div>
-                                    <CardTitle className="font-heading">Draft Post</CardTitle>
-                                </div>
-                                <button
-                                    onClick={copyToClipboard}
-                                    className="p-2 hover:bg-background rounded-lg transition-colors border border-transparent hover:border-border shadow-sm"
-                                    title="Copy to clipboard"
-                                >
-                                    {copied ? (
-                                        <Check className="w-5 h-5 text-secondary" />
-                                    ) : (
-                                        <Copy className="w-5 h-5 text-muted-foreground" />
-                                    )}
-                                </button>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="bg-background p-4 rounded-lg border border-border shadow-sm text-foreground whitespace-pre-wrap font-medium text-sm">
-                                    {data.engagementPost}
-                                </div>
-                                <p className="text-xs text-center text-muted-foreground/70 mt-2">
-                                    Ready to share on LinkedIn or Twitter
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                </div>
-
-                {/* FAQs */}
-                <motion.div variants={item}>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-4">
-                            <div className="p-2 bg-secondary/20 rounded-lg">
-                                <HelpCircle className="w-6 h-6 text-secondary" />
-                            </div>
-                            <CardTitle className="font-heading">Frequent Questions</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Accordion items={data.faqs} />
-                        </CardContent>
-                    </Card>
-                </motion.div>
-
-                {/* Follow Up Actions */}
-                <motion.div variants={item}>
-                    <Card className="bg-foreground text-background border-border">
-                        <CardHeader>
-                            <CardTitle className="text-background font-heading">Recommended Next Steps</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <ul className="grid gap-3 sm:grid-cols-2">
-                                {data.followUp.map((action, i) => (
-                                    <li key={i} className="flex items-center gap-3 p-3 bg-foreground/90 rounded-lg border border-foreground/80">
-                                        <div className="w-2 h-2 bg-secondary rounded-full" />
-                                        <span className="text-background/90 text-sm">{action}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
-                </motion.div>
+        <motion.div
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="w-full space-y-12 pb-20"
+        >
+            {/* 1. Executive Summary */}
+            <motion.div variants={item}>
+                <ExecutiveSummaryCard content={results.summary} />
             </motion.div>
-        </>
+
+            {/* 2. Topics & Draft Post (Side by Side) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Top Topics */}
+                <motion.div variants={item}>
+                    <Card className="rounded-[3rem] border-none shadow-premium bg-white h-full overflow-hidden">
+                        <CardHeader className="flex flex-row items-center justify-between pb-6">
+                            <CardTitle className="font-heading text-xs font-black tracking-widest text-muted-foreground uppercase py-1 px-3 bg-muted/20 rounded-full flex items-center gap-2">
+                                <ChartBarLineIcon className="w-3 h-3" />
+                                TOP TOPICS
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-2">
+                            <TrendingTopicsList topics={topicData} />
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
+                {/* Draft Post */}
+                <motion.div variants={item}>
+                    <Card className="rounded-[3rem] border-none shadow-premium bg-white h-full overflow-hidden relative group">
+                        <CardHeader className="flex flex-row items-center justify-between pb-6">
+                            <CardTitle className="font-heading text-xs font-black tracking-widest text-muted-foreground uppercase py-1 px-3 bg-muted/20 rounded-full flex items-center gap-2">
+                                <Message01Icon className="w-3 h-3" />
+                                ENGAGEMENT DRAFT
+                            </CardTitle>
+                            <button
+                                onClick={copyToClipboard}
+                                className="p-2 bg-primary/5 hover:bg-primary/10 rounded-xl transition-colors group-hover:scale-110 duration-300"
+                            >
+                                {copied ? <Tick01Icon className="w-4 h-4 text-green-600" /> : <Copy01Icon className="w-4 h-4 text-primary" />}
+                            </button>
+                        </CardHeader>
+                        <CardContent className="pt-2">
+                            <div className="bg-[#F8F7F4] p-6 rounded-[2rem] border border-border/40 text-sm font-bold text-foreground leading-relaxed whitespace-pre-wrap italic">
+                                &ldquo;{results.engagementPost}&rdquo;
+                            </div>
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-wider text-center mt-4 opacity-60">Ready for Telegram or WhatsApp</p>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            </div>
+
+            {/* 3. Community Analytics */}
+            <div className="space-y-8">
+                <div className="flex items-center gap-3 px-4">
+                    <h3 className="text-xl font-heading font-black text-foreground">Community Analytics</h3>
+                    <div className="h-px flex-1 bg-border/40" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <motion.div variants={item} className="md:col-span-4">
+                        <HealthScoreCard score={results.healthScore} />
+                    </motion.div>
+
+                    <motion.div variants={item} className="md:col-span-8">
+                        <SentimentBar sentiment={results.sentiment} />
+                    </motion.div>
+                </div>
+
+                <motion.div variants={item}>
+                    <VolumeGraph data={results.volumeData} />
+                </motion.div>
+            </div>
+
+            {/* 4. Member Insights — Geography + Active Users */}
+            <div className="space-y-8">
+                <div className="flex items-center gap-3 px-4">
+                    <h3 className="text-xl font-heading font-black text-foreground">Member Insights</h3>
+                    <div className="h-px flex-1 bg-border/40" />
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <motion.div variants={item}>
+                        <MemberGeographyCard geography={results.memberGeography ?? []} />
+                    </motion.div>
+                    <motion.div variants={item}>
+                        <ActiveUsersCard contributors={results.topContributors ?? []} />
+                    </motion.div>
+                </div>
+            </div>
+
+            {/* 5. Unanswered Questions (Dark Card — always shown) */}
+            <div className="space-y-8">
+                <div className="flex items-center gap-3 px-4">
+                    <h3 className="text-xl font-heading font-black text-foreground">Unanswered Questions</h3>
+                    <div className="h-px flex-1 bg-border/40" />
+                </div>
+                <motion.div variants={item}>
+                    <UnansweredQuestionsCard questions={unansweredToShow} />
+                </motion.div>
+            </div>
+
+            {/* 6. FAQs (Accordion) */}
+            <motion.div variants={item} className="space-y-6">
+                <div className="flex items-center gap-3 px-4">
+                    <h3 className="text-xl font-heading font-black text-foreground">Frequent Questions</h3>
+                    <div className="h-px flex-1 bg-border/40" />
+                </div>
+                <Card className="rounded-[3rem] border-none shadow-premium bg-white p-6 md:p-10">
+                    <Accordion items={results.faqs} />
+                </Card>
+            </motion.div>
+
+            {/* 7. Recommended Next Steps */}
+            <motion.div variants={item} className="space-y-8">
+                <div className="flex items-center gap-3 px-4">
+                    <h3 className="text-xl font-heading font-black text-foreground">Recommended Actions</h3>
+                    <div className="h-px flex-1 bg-border/40" />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {results.followUp.map((action, i) => (
+                        <div key={i} className="group p-8 bg-white/50 border border-border/40 rounded-[2.5rem] flex flex-col hover:bg-white hover:shadow-xl transition-all duration-500">
+                            <div className="w-10 h-10 bg-primary/5 rounded-2xl flex items-center justify-center mb-6 border border-primary/10">
+                                <span className="text-primary font-black text-xs">{i + 1}</span>
+                            </div>
+                            <p className="text-sm font-bold text-foreground leading-relaxed italic border-l-2 border-primary/20 pl-4 py-1">
+                                {action}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </motion.div>
+        </motion.div>
     );
 }
