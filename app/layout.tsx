@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/next"
 
 const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
@@ -31,6 +32,7 @@ export default function RootLayout({
         className={`${bricolage.variable} ${inter.variable} antialiased font-sans`}
       >
         {children}
+        <Analytics />
         <Toaster position="top-center" />
       </body>
     </html>
